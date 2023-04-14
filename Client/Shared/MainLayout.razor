@@ -1,0 +1,59 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+
+    <audio @ref="AudioCompReference">
+        <source src="@CurrentSongSource" type="audio/mpeg">
+    </audio>
+
+    <div
+        id="SideNav"
+        class="
+            h-[100%]
+            p-6
+            w-[240px]
+            fixed
+            z-50
+            bg-black"
+    >
+        <NavMenu />
+    </div>
+
+    <div class="
+        w-[calc(100%-240px)]
+        h-[60px]
+        fixed
+        right-0
+        z-20
+        bg-dark1
+        bg-opacity-80
+        flex
+        items-center
+        justify-between">
+        <TopMenu />
+        
+    </div>
+
+    <main class="
+        fixed
+        right-0
+        top-0
+        w-[calc(100%-240px)]
+        overflow-auto
+        h-full
+        bg-gradient-to-b
+        from-dark4
+        to-black">
+        <article class="">
+            <div class="mt-[70px]"></div>
+            @Body
+            <div class="mb-[100px]"></div>
+        </article>
+    </main>
+
+    @if(HasSongLoaded)
+    {
+        <MusicPlayerPane />
+    }
+
+</div>

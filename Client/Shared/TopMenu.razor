@@ -1,0 +1,44 @@
+<div class="flex items-center ml-6">
+
+    <button type="button" class="rounded-full bg-black p-[1px] cursor-pointer hover:bg-dark2">
+        <LeftArrowIcon width="30" heigth="30" />
+    </button>
+
+    <button type="button" class="rounded-full bg-black p-[1px] cursor-pointer ml-4 hover:bg-dark2">
+        <RightArrowIcon width="30" heigth="30" />
+    </button>
+</div>
+
+<button class="hover:bg-dark2 rounded-full p-0.5 mr-8 mt-0.5 cursor-pointer bg-@BackgroundColorCSS"
+        @onclick="ToggleMenu">
+
+    <div class="flex items-center">
+        <UserIcon width="26" heigth="26" />
+        <div class="text-white text-[14px] ml-1.5 font-semibold">Unknown</div>
+        <div>
+            @if(menuIsOpen)
+            {
+                <DownArrowIcon />
+            }
+            else
+            {
+                <UpArrowIcon />
+            }
+        </div>
+    </div>
+
+</button>
+
+@if(menuIsOpen)
+{
+    <span class="fixed w-[190px] bg-dark2 shadow-2xl z-50 rounded-sm top-[52px] right-[35px] p-1 cursor-pointer" >
+        <ul class="text-gray-200 font-semibold text-[14px]">
+            <li class="px-3 py-2.5 hover:bg-dark3 border-b border-b-gray-600">
+                Profile
+            </li>
+            <li class="px-3 py-2.5 hover:bg-dark3">
+                Log out
+            </li>
+        </ul>
+    </span>
+}

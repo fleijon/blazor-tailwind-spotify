@@ -1,0 +1,31 @@
+<NavLink>
+    <img width="125" src="images/icons/spotify-logo.png" />
+</NavLink>
+<div class="my-8" ></div>
+
+@foreach (var item in new List<(string Name, string NavRoute, string ImageName, string ClassAttribute)>
+    {
+        ("Home", "", "home", "ml-[1px]"),
+        ("Search", "search", "search", "ml-[1px]"),
+        ("Your Library", "library/95ad48b5-d4fc-4178-8fc9-bd306be760ed", "library", "ml-[2px]")
+    })
+{
+    var activeImage = $"images/icons/{item.ImageName}-active.png";
+    var inactiveImage = $"images/icons/{item.ImageName}-inactive.png";
+
+    <NavLink href="@item.NavRoute">
+        <MenuItem class="@item.ClassAttribute" Name="@item.Name" NavRoute="@item.NavRoute" ImageUrlActive="@activeImage" ImageUrlInactive="@inactiveImage" />
+    </NavLink>
+}
+
+<div class="py-3.5"></div>
+<MenuItem Name="Create Playlist" NavRoute="playlist" ImageUrlActive="images/icons/playlist-active.png" ImageUrlInactive="images/icons/playlist-inactive.png" />
+<MenuItem class="-ml-[1px]" Name="Liked Songs" NavRoute="liked" ImageUrlActive="images/icons/liked-active.png" ImageUrlInactive="images/icons/liked-inactive.png" />
+<div class="border-b border-b-gray-700"></div>
+
+<ul>
+    @foreach (var item in new int[]{1,2,3,4})
+    {
+        <li class="font-semibold text-[13px] mt-3 text-gray-300 hover:text-white cursor-pointer"> My Playlist @item </li>
+    }
+</ul>

@@ -1,0 +1,87 @@
+@inject MusicPlayer.Client.Audio.IAudioManager AudioManager;
+
+@if(show)
+{
+    <div class="flex items-center">
+        @if(isMute)
+        {
+            <VolumeMuteIcon width="20" height="20" />
+        }
+        else
+        {
+            <VolumeHighIcon width="20" height="20" />
+        }
+        <div class="flex items-center ml-2 w-[150px] relative mt-2 mb-[23px]"
+            @onmouseenter="OnMouseEnter"
+            @onmouseleave="OnMouseLeave">
+            <input 
+                    ref="volume"
+                    type="range"
+                    @bind-value="Volume"
+                    @bind-value:event="oninput"
+                    class="
+                        mt-[24px]
+                        absolute
+                        my-2
+                        w-full
+                        h-0
+                        z-40
+                        appearance-none
+                        bg-opacity-100
+                        focus:outline-none
+                        accent-white
+                        @dotAppearance"
+                        >
+                <div class="pointer-events-none mt-[6px] absolute h-[4px] z-10 inset-y-0 left-0 w-0 @background"
+                     style="width: @(Volume)%;" />
+                <div class="absolute h-[4px] z-[-0] mt-[6px] inset-y-0 left-0 w-full bg-gray-400 rounded-full" />
+        </div>
+    </div>
+}
+
+<style>
+    .rangeDotHidden[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 0;
+        height: 0;
+    }
+</style>
+
+@code
+{
+    // Hide dot in range input when not hovering the component. This relies on WebKit rendering. Works in Safari and Edge
+    private string dotAppearance => isHover ? "" : "rangeDotHidden";
+    private bool isMute => AudioManager.AudioPlayer != null && AudioManager.AudioPlayer.Volume == 0;
+    private bool isHover = false;
+    private string background => isHover ? "bg-green-500" : "bg-white";
+    private bool show => AudioManager.AudioPlayer != null;
+    private double Volume
+    {
+        get => AudioManager.AudioPlayer.Volume;
+        set => AudioManager.AudioPlayer.Volume = value;
+    }
+
+    private void OnMouseEnter()
+    {
+        isHover = true;
+    }
+    private void OnMouseLeave()
+    {
+        isHover = false;
+    }
+
+    protected override void OnInitialized()
+    {
+        AudioManager.AudioPlayerIsSet += OnAudioPlayerIsSet;
+        base.OnInitialized();
+    }
+
+    private void OnAudioPlayerIsSet(object? sender, EventArgs args)
+    {
+        StateHasChanged();
+    }
+
+}
+
+

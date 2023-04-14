@@ -1,0 +1,50 @@
+<li class="flex item-center justify-between rounded-md hover:bg-[#2A2929]"
+    @onmouseenter="OnMouseEnter"
+    @onmouseleave="OnMouseLeave">
+
+    <div class="flex item-center w-full py-1.5" >
+        @if(isHover)
+        {
+            <div class="w-[40px] ml-[14px] mr-[6px] cursor-pointer">
+                <button @onclick="OnPlayPauseClick">
+                    @if(!IsPlaying)
+                    {
+                        <PlayIcon width="25" heigth="25"/>
+                    }
+                    else
+                    {
+                        <PauseIcon width="25" heigth="25" />
+                    }
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="@TextColor font-semibold w-[40px] ml-5">
+                <span>
+                    @Index
+                </span>
+            </div>
+        }
+        <div>
+            <div class="@TextColor font-semibold">
+                @Name
+            </div>
+            <div class="text-sm font-semibold text-gray-400">
+                @Artist
+            </div>
+        </div>
+    </div>
+    <div class="flex items-center">
+        @if(isHover)
+        {
+            <button type="button">
+                <HeartIcon Fill="#1BD760" width="22" heigth="22" />
+            </button>
+        }
+
+        <div class="text-xs mx-5 text-gray-400">
+            @TrackTimeFormatted
+        </div>
+    </div>
+</li>

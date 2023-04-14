@@ -1,0 +1,108 @@
+<div
+    id="MusicPlayer"
+    class="
+            fixed
+            flex
+            items-center
+            justify-between
+            bottom-0
+            w-full
+            z-50
+            h-[90px]
+            bg-[#181818]
+            border-t
+            border-t-[#272727]
+            ">
+
+    <div class="flex items-center w-1/4">
+        <div class="flex items-center ml-4 ">
+            <img class="rounded-sm shadow-2xl" width="55" src="https://picsum.photos/id/31/300/300">
+            <div class="ml-4">
+                <div class="text-[14px] text-white hover:underline cursor-pointer truncate w-[110px]">
+                    @CurrentArtistName
+                </div>
+                <div class="text-[11px] text-white hover:underline cursor-pointer truncate w-[110px]">
+                    @CurrentTrackName
+                </div>
+            </div>
+        </div>
+        <div class="hidden lg:flex items-center ml-8">
+            <HeartIcon Fill="#1BD760" heigth="20" width="20" />
+            <PictureInPictureBottomRigthIcon class="ml-4" heigth="18" width="18" />
+        </div>
+    </div>
+
+    <div class="max-w-[35%] mx-auto w-2/4 mb-3"
+>    
+        <div class="flex-col items-center justify-center">
+            <div class="buttons flex items-center justify-center h-[30px]">
+                <button class="mx-2" @onclick="Previous">
+                    <SkipBackward />
+                </button>
+                <button class="p-1 rounded-full mx-3 bg-white" @onclick="OnPlayPauseClick">
+                    @if(!IsPlaying)
+                    {
+                        <PlayIcon Fill="#181818" />
+                    }
+                    else
+                    {
+                        <PauseIcon Fill="#181818" />
+                    }
+                </button>
+                <button class="mx-2" @onclick="Next">
+                    <SkipForward />
+                </button>
+            </div>
+
+            <div class="flex items-center h-[25px]">
+                <div class="text-white text-[12px] pr-2 pt-[11px]">
+                    @SongTimeFormatted
+                </div>
+                <div ref="seekterContainer"
+                     @onmouseenter="OnMouseEnter"
+                     @onmouseleave="OnMouseLeave"
+                    class="w-full relative mt-2 mb-3">
+                    <input 
+                            ref="seeker"
+                            type="range"
+                            @bind-value="SongProgressProxy"
+                            class="absolute
+                                rounded-full
+                                my-2
+                                w-full
+                                h-0
+                                z-40
+                                appearance-none
+                                bg-opacity-100
+                                focus:outline-none
+                                @DotAppearance
+                                accent-white">
+                    <div 
+                        class="pointer-events-none mt-[6px] absolute h-[4px] z-10 inset-y-0 left-0 w-0 @background"
+                        style="width: @(SongProgress)%;"
+                    />
+                    <div 
+                        class="absolute h-[4px] z-[-0] mt-[6px] inset-y-0 left-0 w-full bg-gray-500 rounded-full"
+                    />
+                </div>
+
+                <div class="text-white text-[12px] pr-2 pt-[11px] pl-2">
+                    @DurationFormatted
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="w-1/4 justify-end pr-10 hidden md:flex">
+        <MusicPlayerVolume />
+    </div>
+</div>
+
+<style>
+    .rangeDotHidden[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 0;
+        height: 0;
+    }
+</style>
