@@ -1,51 +1,159 @@
-export function initAudio(element, reference){
-    element.addEventListener("ended", async e => {
-        await reference.invokeMethodAsync("OnEndJsFunction");
-    });
-    element.addEventListener("timeupdate", async e => {
-        await reference.invokeMethodAsync("OnTimeUpdateJsFunction", e);
-    });
-    element.addEventListener("volumechange", async e => {
-        await reference.invokeMethodAsync("OnVolumeChangeJsFunction", e);
-    })
-    element.addEventListener("pause", async e => {
-        await reference.invokeMethodAsync("OnPauseJsFunction", e);
-    });
-    element.addEventListener("play", async e => {
-        await reference.invokeMethodAsync("OnPlayJsFunction", e);
-    });
+let audioPlayer;
+
+class PlaylistItem {
+    id;
+    audioSource;
+
+    constructor(id, audioSource) {
+        this.id = id;
+        this.audioSource = audioSource;
+    }
 }
 
-export function playAudio(element) {
-    stopAudio(element);
-    element.play();
+class AudioPlayer {
+    playlist = [];
+    index = -1;
+    audio;
+    dotnetref;
+
+    constructor(dotnetCallbackReference) {
+        this.dotnetref = dotnetCallbackReference;
+        this.audio = new Audio();
+
+        this.audio.addEventListener("ended", async e => {
+            await dotnetCallbackReference.invokeMethodAsync("OnEndJs");
+            this.next()
+        });
+        this.audio.addEventListener("timeupdate", async e => {
+            await dotnetCallbackReference.invokeMethodAsync("OnTimeChangedJs", this.audio.currentTime);
+        });
+        this.audio.addEventListener("volumechange", async e => {
+            await dotnetCallbackReference.invokeMethodAsync("OnVolumeChangeJs", e);
+        })
+        this.audio.addEventListener("pause", async e => {
+            await dotnetCallbackReference.invokeMethodAsync("OnPauseJs", e);
+        });
+        this.audio.addEventListener("play", async e => {
+            await dotnetCallbackReference.invokeMethodAsync("OnPlayJs", e);
+        });
+        this.audio.addEventListener("stop", async e => {
+            await dotnetCallbackReference.invokeMethodAsync("OnStopJs", e);
+        });
+    }
+
+    queueLast(song) {
+        this.playlist.push(song);
+    }
+
+    queueNext(song) {
+        // TODO: Queue the song next in the queue, relative to the current index
+    }
+
+    async clearQueue() {
+        this.pause();
+        this.audio.src = null;
+        this.index = -1;
+
+        this.playlist = []
+
+        await this.dotnetref.invokeMethodAsync("AudioUnLoadedJs");
+    }
+
+    play() {
+        if(this.index == -1 && this.playlist.length > 0) {
+            this.index++;
+            this.load();
+        }
+
+        this.audio.play();
+    }
+
+    async load() {
+        if(this.index < this.playlist.length && this.index > -1 ){
+            var currentItem = this.playlist[this.index];
+            this.audio.src = currentItem.audioSource;
+            this.audio.load();
+            this.dotnetref.invokeMethodAsync("AudioLoadedJs", currentItem);
+        }
+    }
+
+    next() {
+        if(this.index < this.playlist.length-1 ){
+            this.index++;
+            this.load();
+        }
+
+        this.play();
+    }
+
+    previous() {
+        if(this.index > 0) {
+            this.index--;
+            this.load();
+        }
+
+        this.play();
+    }
+
+    pause() {
+        this.audio.pause();
+    }
+
+    setVolume(val) {
+        this.audio.volume = val;
+    }
+
+    seek(per) {
+
+        // Convert the percent into a seek position.
+        if (this.audio.playing()) {
+            this.audio.seek(this.audio.duration() * per);
+        }
+    }
 }
 
-export function stopAudio(element) {
-    element.pause();
-    element.currentTime = 0;
+// Public api
+
+export function initializePlayer(dotnetCallbackReference) {
+    audioPlayer = new AudioPlayer(dotnetCallbackReference);
 }
 
-export function pauseAudio(element) {
-    element.pause();
+export function queueLast(song) {
+    audioPlayer.queueLast(song);
 }
 
-export function loadAudio(element) {
-    element.load();
+export function queueNext(song) {
+    audioPlayer.queueNext(song);
 }
 
-export function getCurrentTime(element) {
-    return JSON.stringify(element.currentTime);
+export async function clearQueue() {
+    await audioPlayer.clearQueue();
 }
 
-export function getVolume(element) {
-    return JSON.stringify(element.volume);
+export function play() {
+    audioPlayer.play();
 }
 
-export function setVolume(element, volume) {
-    element.volume = volume;
+export function next() {
+    audioPlayer.next();
 }
 
-export function setTime(element, time) {
-    element.currentTime = time;
+export function previous() {
+    audioPlayer.previous();
+}
+
+export function pause() {
+    audioPlayer.pause();
+}
+
+export function stop() {
+    audioPlayer.stop();
+}
+
+export function seek(position) {
+    audioPlayer.seek(position);
+}
+
+export function setVolume(vol) {
+    audioPlayer.setVolume(vol);
 }

@@ -1,13 +1,16 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MusicPlayer.Client.Audio;
+using MusicPlayer.Client.MusicStore;
 
 namespace MusicPlayer.Client.Shared;
 
 public partial class MusicPlayerPane
 {
     [Inject]
-    public IAudioManager AudioManager { get;set; } = null!;
+    public IAudioPlayer AudioPlayer { get;set; } = null!;
+    [Inject]
+    public IMusicStore MusicStore { get;set; } = null!;
 
     [Parameter]
     public string? Source { get;set; }
@@ -23,11 +26,11 @@ public partial class MusicPlayerPane
     private bool isHover = false;
     private string DotAppearance => isHover ? "" : "rangeDotHidden";
     private string background => isHover ? "bg-green-500" : "bg-white";
-    public string CurrentTrackName => AudioManager.CurrentSong?.Artist ?? string.Empty;
-    public string CurrentArtistName => AudioManager.CurrentSong?.TrackName ?? string.Empty;
-    private bool IsPlaying => AudioManager.AudioPlayer?.IsPlaying ?? false;
-    private double Duration => (AudioManager.CurrentSong?.DurationSeconds) ?? 0;
-    private double SongTime => AudioManager.CurrentSong is null || AudioManager.AudioPlayer is null ? 0 : AudioManager.AudioPlayer.Time;
+    public string CurrentTrackName => AudioPlayer.CurrentSong is null ? string.Empty : GetTrackName(Guid.Parse(AudioPlayer.CurrentSong.Id));
+    public string CurrentArtistName => AudioPlayer.CurrentSong is null ? string.Empty : GetArtistName(Guid.Parse(AudioPlayer.CurrentSong.Id));
+    private bool IsPlaying => AudioPlayer.IsPlaying;
+    private int Duration => AudioPlayer.CurrentSong is null ? 0 : GetDuration(Guid.Parse(AudioPlayer.CurrentSong.Id));
+    private double SongTime => AudioPlayer.CurrentSong is null ? 0 : AudioPlayer.Time;
     private string DurationFormatted => FormatDuration(Duration);
     private string SongTimeFormatted => FormatDuration(SongTime);
     private double SongProgress => CalculateSongProgress(Duration, SongTime);
@@ -38,6 +41,30 @@ public partial class MusicPlayerPane
         {
             // do nothing
         }
+    }
+
+    private string GetTrackName(Guid songId)
+    {
+        var track = MusicStore.GetSong(songId);
+
+        return track?.Name ?? string.Empty;
+    }
+
+    private int GetDuration(Guid songId)
+    {
+        var track = MusicStore.GetSong(songId);
+
+        return (int)(track?.Duration.TotalSeconds ?? 0);
+    }
+
+    private string GetArtistName(Guid songId)
+    {
+        var track = MusicStore.GetSong(songId);
+        if(track is null)
+            return string.Empty;
+        var artist = MusicStore.GetArtist(track.ArtistId);
+
+        return artist?.Name ?? string.Empty;
     }
 
     private static double CalculateSongProgress(double totalTime, double currentTime)
@@ -56,10 +83,7 @@ public partial class MusicPlayerPane
 
     private async Task OnPlayPauseClick()
     {
-        if(AudioManager.AudioPlayer is null)
-            return;
-
-        if(!AudioManager.AudioPlayer.IsPlaying)
+        if(!AudioPlayer.IsPlaying)
         {
             await PlayAudio();
         }
@@ -71,55 +95,39 @@ public partial class MusicPlayerPane
 
     public async Task Next()
     {
-        await AudioManager.Next();
+        await AudioPlayer.GoNext();
     }
 
     public async Task Previous()
     {
-        await AudioManager.Previous();
+        await AudioPlayer.GoPrevious();
     }
 
     public async Task PlayAudio()
     {
-        await AudioManager.Play();
+        await AudioPlayer.Play();
     }
 
     public async Task PauseAudio()
     {
-        await AudioManager.Pause();
+        await AudioPlayer.Pause();
     }
 
     protected override void OnInitialized()
     {
-        AudioManager.StateChanged += OnStateChanged;
-
-        if(AudioManager.AudioPlayer is null)
-        {
-            AudioManager.AudioPlayerIsSet += OnAudioPlayerIsSet;
-        }
-        else
-        {
-            AudioManager.AudioPlayer.OnTimeUpdated += OnTimeUpdated;
-        }
+        AudioPlayer.OnPlay += OnPlayChanged;
+        AudioPlayer.OnPause += OnPlayChanged;
+        AudioPlayer.OnTimeUpdated += OnTimeUpdated;
 
         base.OnInitialized();
     }
 
-    private void OnAudioPlayerIsSet(object? sender, EventArgs args)
-    {
-        if(AudioManager.AudioPlayer is null)
-            return;
-
-        AudioManager.AudioPlayer.OnTimeUpdated += OnTimeUpdated;
-        StateHasChanged();
-    }
-
-    private void OnTimeUpdated(object? sender, double args)
+    private void OnTimeUpdated(object? sender, double e)
     {
         StateHasChanged();
     }
 
-    private void OnStateChanged(object? sender, EventArgs e)
+    private void OnPlayChanged(object? sender, EventArgs e)
     {
         StateHasChanged();
     }

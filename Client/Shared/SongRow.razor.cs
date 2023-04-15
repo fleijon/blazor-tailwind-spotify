@@ -8,7 +8,7 @@ public partial class SongRow
     [Inject]
     public MusicStore.IMusicStore MusicStore { get;set; } = null!;
     [Inject]
-    public Audio.IAudioManager AudioManager { get;set; } = null!;
+    public IAudioPlayer AudioPlayer { get;set; } = null!;
     [Parameter]
     public Guid? SongId { get;set; }
     [Parameter]
@@ -18,15 +18,15 @@ public partial class SongRow
     private string? TrackTimeFormatted;
     private string? Artist;
     private string TextColor => IsLoaded ? "text-white" : "text-gray-400";
-    private bool IsLoaded => (SongId is null || AudioManager.CurrentSong is null) ? false : SongId == AudioManager.CurrentSong.Id;
-    private bool IsPlaying => IsLoaded && (AudioManager.AudioPlayer != null && AudioManager!.AudioPlayer.IsPlaying);
+    private bool IsLoaded => (SongId is null || AudioPlayer.CurrentSong is null) ? false : SongId == Guid.Parse(AudioPlayer.CurrentSong.Id);
+    private bool IsPlaying => IsLoaded && AudioPlayer.IsPlaying;
     private bool isHover = false;
 
     private async void OnPlayPauseClick()
     {
         if(IsPlaying)
         {
-            await AudioManager.Pause();
+            await AudioPlayer.Pause();
         }
         else
         {
@@ -38,9 +38,9 @@ public partial class SongRow
             if(song is null)
                 return;
 
-            var artist = MusicStore.GetArtist(song.ArtistId);
-            await AudioManager.Clear();
-            await AudioManager.Queue(new Song[]{ new Song(SongId.Value, artist?.Name ?? "Unknown artist", song.Name, song.Source, song.Duration)});
+            await AudioPlayer.ClearQueue();
+            await AudioPlayer.QueueLast(new PlaylistItem[]{ new PlaylistItem(SongId.Value.ToString(), song.Source)});
+            await AudioPlayer.Play();
         }
     }
     private void OnMouseEnter()
@@ -65,29 +65,19 @@ public partial class SongRow
             }
         }
 
-        if(AudioManager.AudioPlayer is null)
-        {
-            AudioManager.AudioPlayerIsSet += AudioPlayerIsSet;
-        }
-        else
-        {
-            AudioManager.AudioPlayer.IsPlayingChanged += OnIsPlayingChanged;
-        }
+        AudioPlayer.OnLoad += OnSongLoaded;
+        AudioPlayer.OnPlay += PlayChanged;
+        AudioPlayer.OnPause += PlayChanged;
 
         base.OnInitialized();
     }
 
-    private void AudioPlayerIsSet(object? sender, EventArgs e)
+    private void PlayChanged(object? sender, EventArgs e)
     {
         StateHasChanged();
-
-        if(AudioManager.AudioPlayer is null)
-            return;
-
-        AudioManager.AudioPlayer.IsPlayingChanged += OnIsPlayingChanged;
     }
 
-    private void OnIsPlayingChanged(object? sender, bool e)
+    private void OnSongLoaded(object? sender, EventArgs e)
     {
         StateHasChanged();
     }
@@ -95,5 +85,5 @@ public partial class SongRow
 
 public static class SongExtensions
 {
-    public static string TrackTimeFormatted(this MusicStore.Song target) => $"{(int)Math.Floor((double)target.Duration/60)}:{(int)(target.Duration % 60):00}";
+    public static string TrackTimeFormatted(this MusicStore.Song target) => $"{(int)Math.Floor((double)target.Duration.TotalSeconds/60)}:{(int)(target.Duration.TotalSeconds % 60):00}";
 }

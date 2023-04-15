@@ -12,7 +12,7 @@ public interface IMusicStore
 public record Album(Guid Id, string Name, IReadOnlyList<AlbumSong> Songs, string AlbumCoverSource, int ReleaseYear);
 public record AlbumSong(Guid Id, int Order);
 public record Artist(Guid Id, string Name);
-public record Song(Guid Id, string Name, int Duration, string Source, Guid ArtistId);
+public record Song(Guid Id, string Name, TimeSpan Duration, string Source, Guid ArtistId);
 
 public class MusicStore : IMusicStore
 {
@@ -37,11 +37,11 @@ public class MusicStore : IMusicStore
             artist5
         };
 
-        var song1 = new Song(Guid.Parse("1ef6a8f7-811a-41b6-8ce2-3e1e13b4f562"), "Ambient Classical Guitar", 109, "/media/ambient-classical-guitar-William_King.mp3", artist1.Id);
-        var song2 = new Song(Guid.Parse("5b4bacb5-129e-4fbf-ace1-6d4e0084072f"), "Relaxing", 72, "/media/coniferous-forest-orangery.mp3", artist2.Id);
-        var song3 = new Song(Guid.Parse("ae7fee78-c14a-4fa1-846d-5dbf8aebeb65"), "Smoke", 118, "/media/floating-abstract-ComaStudio.mp3", artist3.Id);
-        var song4 = new Song(Guid.Parse("6f938fbd-fa0f-4a71-95b9-cbeef3bf1889"), "Floating Abstract", 97, "/media/relaxing-Music_For_Videos.mp3", artist4.Id);
-        var song5 = new Song(Guid.Parse("212d3113-f9ca-44d8-910e-0aa19f53eb65"), "Coniferous forest", 128, "/media/smoke-SoulProdMusic.mp3", artist5.Id);
+        var song1 = new Song(Guid.Parse("1ef6a8f7-811a-41b6-8ce2-3e1e13b4f562"), "Ambient Classical Guitar", TimeSpan.FromSeconds(109), "/media/ambient-classical-guitar-William_King.mp3", artist1.Id);
+        var song2 = new Song(Guid.Parse("5b4bacb5-129e-4fbf-ace1-6d4e0084072f"), "Relaxing", TimeSpan.FromSeconds(72), "/media/relaxing-Music_For_Videos.mp3" , artist2.Id);
+        var song3 = new Song(Guid.Parse("ae7fee78-c14a-4fa1-846d-5dbf8aebeb65"), "Smoke", TimeSpan.FromSeconds(118), "/media/smoke-SoulProdMusic.mp3" , artist3.Id);
+        var song4 = new Song(Guid.Parse("6f938fbd-fa0f-4a71-95b9-cbeef3bf1889"), "Floating Abstract", TimeSpan.FromSeconds(97), "/media/floating-abstract-ComaStudio.mp3", artist4.Id);
+        var song5 = new Song(Guid.Parse("212d3113-f9ca-44d8-910e-0aa19f53eb65"), "Coniferous forest", TimeSpan.FromSeconds(128), "/media/coniferous-forest-orangery.mp3", artist5.Id);
 
         _songs = new List<Song>()
         {

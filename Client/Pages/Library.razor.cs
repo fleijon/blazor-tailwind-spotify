@@ -8,7 +8,7 @@ public partial class Library
     [Inject]
     public MusicStore.IMusicStore MusicStore { get;set; } = null!;
     [Inject]
-    public IAudioManager AudioManager { get;set; } = null!;
+    public IAudioPlayer AudioPlayer { get;set; } = null!;
 
     [Parameter]
     public Guid AlbumId { get;set; } // = Guid.Parse("95ad48b5-d4fc-4178-8fc9-bd306be760ed");
@@ -23,7 +23,7 @@ public partial class Library
     private string AlbumName => Album?.Name ?? string.Empty;
     private string AlbumCover => Album?.AlbumCoverSource ?? string.Empty;
     private int? ReleaseYear => Album?.ReleaseYear;
-    private bool IsPlaying => AudioManager.AudioPlayer?.IsPlaying ?? false;
+    private bool IsPlaying => AudioPlayer.IsPlaying;
 
     private string GetArtists()
     {
@@ -42,42 +42,26 @@ public partial class Library
 
         if(IsPlaying)
         {
-            await AudioManager.Pause();
+            await AudioPlayer.Pause();
         }
         else
         {
-            var songsToQueue = Songs.Select(s => new Song(s.Id, MusicStore.GetArtist(s.ArtistId)?.Name ?? string.Empty, s.Name, s.Source, s.Duration));
+            var songsToQueue = Songs.Select(s => new PlaylistItem(s.Id.ToString(), s.Source));
 
-            await AudioManager.Clear();
-            await AudioManager.Queue(songsToQueue);
+            await AudioPlayer.ClearQueue();
+            await AudioPlayer.QueueLast(songsToQueue);
+            await AudioPlayer.Play();
         }
     }
 
     protected override void OnInitialized()
     {
-        if(AudioManager.AudioPlayer is null)
-        {
-            AudioManager.AudioPlayerIsSet += AudioPlayerIsSet;
-        }
-        else
-        {
-            AudioManager.AudioPlayer.IsPlayingChanged += OnIsPlayingChanged;
-        }
-
+        AudioPlayer.OnPause += PlayChanged;
+        AudioPlayer.OnPlay += PlayChanged;
         base.OnInitialized();
     }
 
-    private void AudioPlayerIsSet(object? sender, EventArgs e)
-    {
-        StateHasChanged();
-
-        if(AudioManager.AudioPlayer is null)
-            return;
-
-        AudioManager.AudioPlayer.IsPlayingChanged += OnIsPlayingChanged;
-    }
-
-    private void OnIsPlayingChanged(object? sender, bool e)
+    private void PlayChanged(object? sender, EventArgs e)
     {
         StateHasChanged();
     }
