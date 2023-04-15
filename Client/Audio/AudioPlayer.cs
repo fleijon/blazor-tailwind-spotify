@@ -10,7 +10,6 @@ public interface IAudioPlayer
     event EventHandler? OnLoad;
     event EventHandler? OnEnd;
     event EventHandler? OnPause;
-    event EventHandler? OnStop;
     event EventHandler? OnSeek;
     event EventHandler<double>? OnStepChanged;
     event EventHandler<double>? OnVolumeChanged;
@@ -21,7 +20,6 @@ public interface IAudioPlayer
     Task QueueNext(IEnumerable<PlaylistItem> songs);
     Task ClearQueue();
     Task Play();
-    Task Stop();
     Task Pause();
     Task Seek(double position);
     Task GoNext();
@@ -89,7 +87,6 @@ public sealed class AudioWrapper : IAudioPlayer
     public event EventHandler? OnLoad;
     public event EventHandler? OnUnload;
     public event EventHandler? OnPause;
-    public event EventHandler? OnStop;
     public event EventHandler? OnSeek;
     public event EventHandler? OnEnd;
     public event EventHandler<double>? OnStepChanged;
@@ -114,13 +111,6 @@ public sealed class AudioWrapper : IAudioPlayer
         if(!IsInitialized)
             return;
         await _jsModule!.InvokeVoidAsync("pauseAudio");
-    }
-
-    public async Task StopAudio()
-    {
-        if(!IsInitialized)
-            return;
-        await _jsModule!.InvokeVoidAsync("stopAudio");
     }
 
     private async Task SetVolume(double volume)
