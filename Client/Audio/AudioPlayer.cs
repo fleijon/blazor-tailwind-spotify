@@ -29,7 +29,6 @@ public interface IAudioPlayer
     double Volume { get; set; }
     double Time { get; set; }
     bool IsPlaying { get; }
-    Task InitializeAudio();
 }
 
 public class PlaylistItem
@@ -90,14 +89,6 @@ public sealed class AudioWrapper : IAudioPlayer
     public event EventHandler? OnSeek;
     public event EventHandler? OnEnd;
     public event EventHandler<double>? OnStepChanged;
-
-    public async Task InitializeAudio()
-    {
-        if(!IsInitialized)
-            return;
-        await _jsModule!.InvokeVoidAsync("initAudio", _ref);
-        await SetVolume(_volume);
-    }
 
     public async Task PlayAudio()
     {
@@ -253,5 +244,6 @@ public sealed class AudioWrapper : IAudioPlayer
         _ref = DotNetObjectReference.Create(this);
 
         await _jsModule.InvokeVoidAsync("initializePlayer", _ref);
+        await SetVolume(_volume);
     }
 }
