@@ -90,32 +90,58 @@ public sealed class AudioWrapper : IAudioPlayer
     public event EventHandler? OnEnd;
     public event EventHandler<double>? OnStepChanged;
 
-    public async Task PlayAudio()
+    public async Task PlayAudio() => await InvokeAsync("playAudio");
+
+    public async Task PauseAudio() => await InvokeAsync("pauseAudio");
+
+    private async Task SetVolume(double volume) => await InvokeAsync("setVolume", volume > 1 ? volume / 100 : volume);
+
+    private async void SetTime(double time) => await InvokeAsync("setTime", time);
+
+    private async Task InvokeAsync(string method, params object?[]? args)
     {
         if(!IsInitialized)
-            return;
-        await _jsModule!.InvokeVoidAsync("playAudio");
+            throw new InvalidOperationException("Js Module is not intitialized");
+        await _jsModule!.InvokeVoidAsync(method, args);
     }
 
-    public async Task PauseAudio()
+    public async Task QueueLast(IEnumerable<PlaylistItem> songs)
     {
-        if(!IsInitialized)
-            return;
-        await _jsModule!.InvokeVoidAsync("pauseAudio");
+        foreach(var item in songs)
+        {
+            await InvokeAsync("queueLast", item);
+        }
     }
 
-    private async Task SetVolume(double volume)
+    public Task QueueNext(IEnumerable<PlaylistItem> songs)
     {
-        if(!IsInitialized)
-            return;
-        await _jsModule!.InvokeVoidAsync("setVolume", volume > 1 ? volume / 100 : volume);
+        throw new NotImplementedException();
     }
 
-    private async void SetTime(double time)
+    public async Task ClearQueue() => await InvokeAsync("clearQueue");
+
+    public async Task Play() => await InvokeAsync("play");
+
+    public async Task Stop() => await InvokeAsync("stop");
+
+    public async Task Pause() => await InvokeAsync("pause");
+
+    public Task Seek(double position)
     {
-        if(!IsInitialized)
-            return;
-        await _jsModule!.InvokeVoidAsync("setTime", time);
+        throw new NotImplementedException();
+    }
+
+    public async Task GoNext() => await InvokeAsync("next");
+
+    public async Task GoPrevious() => await InvokeAsync("previous");
+
+    public async Task Initialize()
+    {
+        _jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", moduleSource);
+        _ref = DotNetObjectReference.Create(this);
+
+        await _jsModule.InvokeVoidAsync("initializePlayer", _ref);
+        await SetVolume(_volume);
     }
 
     [JSInvokable]
@@ -187,63 +213,4 @@ public sealed class AudioWrapper : IAudioPlayer
         return Task.CompletedTask;
     }
 
-    public async Task QueueLast(IEnumerable<PlaylistItem> songs)
-    {
-        foreach(var item in songs)
-        {
-            await _jsModule!.InvokeVoidAsync("queueLast", item);
-        }
-    }
-
-    public Task QueueNext(IEnumerable<PlaylistItem> songs)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task ClearQueue()
-    {
-        await _jsModule!.InvokeVoidAsync("clearQueue");
-    }
-
-    public async Task Play()
-    {
-        if(!IsInitialized)
-            return;
-
-        await _jsModule!.InvokeVoidAsync("play");
-    }
-
-    public async Task Stop()
-    {
-        await _jsModule!.InvokeVoidAsync("stop");
-    }
-
-    public async Task Pause()
-    {
-        await _jsModule!.InvokeVoidAsync("pause");
-    }
-
-    public Task Seek(double position)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task GoNext()
-    {
-        await _jsModule!.InvokeVoidAsync("next");
-    }
-
-    public async Task GoPrevious()
-    {
-        await _jsModule!.InvokeVoidAsync("previous");
-    }
-
-    public async Task Initialize()
-    {
-        _jsModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", moduleSource);
-        _ref = DotNetObjectReference.Create(this);
-
-        await _jsModule.InvokeVoidAsync("initializePlayer", _ref);
-        await SetVolume(_volume);
-    }
 }
