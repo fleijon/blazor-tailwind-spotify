@@ -3,7 +3,7 @@ using MusicPlayer.Client.Audio;
 
 namespace MusicPlayer.Client.Shared;
 
-public partial class SongRow
+public partial class SongRow : IDisposable
 {
     [Inject]
     public MusicStore.IMusicStore MusicStore { get;set; } = null!;
@@ -80,6 +80,13 @@ public partial class SongRow
     private void OnSongLoaded(object? sender, EventArgs e)
     {
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        AudioPlayer.OnLoad -= OnSongLoaded;
+        AudioPlayer.OnPlay -= PlayChanged;
+        AudioPlayer.OnPause -= PlayChanged;
     }
 }
 

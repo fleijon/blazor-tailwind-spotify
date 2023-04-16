@@ -5,7 +5,7 @@ using MusicPlayer.Client.MusicStore;
 
 namespace MusicPlayer.Client.Shared;
 
-public partial class MusicPlayerPane
+public partial class MusicPlayerPane : IDisposable
 {
     [Inject]
     public IAudioPlayer AudioPlayer { get;set; } = null!;
@@ -130,5 +130,12 @@ public partial class MusicPlayerPane
     private void OnPlayChanged(object? sender, EventArgs e)
     {
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        AudioPlayer.OnPlay -= OnPlayChanged;
+        AudioPlayer.OnPause -= OnPlayChanged;
+        AudioPlayer.OnTimeUpdated -= OnTimeUpdated;
     }
 }

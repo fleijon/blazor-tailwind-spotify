@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 
 namespace MusicPlayer.Client.Shared;
 
-public partial class MainLayout
+public partial class MainLayout : IDisposable
 {
     [Inject]
     public Audio.IAudioPlayer AudioPlayer { get;set; } = null!;
@@ -11,6 +11,11 @@ public partial class MainLayout
     public IJSRuntime JSRuntime { get; set; } = null!;
 
     private bool HasSongLoaded => AudioPlayer.CurrentSong != null;
+
+    public void Dispose()
+    {
+        AudioPlayer.OnLoad -= OnSongLoaded;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

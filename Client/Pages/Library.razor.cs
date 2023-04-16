@@ -3,7 +3,7 @@ using MusicPlayer.Client.Audio;
 
 namespace MusicPlayer.Client.Pages;
 
-public partial class Library
+public partial class Library : IDisposable
 {
     [Inject]
     public MusicStore.IMusicStore MusicStore { get;set; } = null!;
@@ -64,5 +64,11 @@ public partial class Library
     private void PlayChanged(object? sender, EventArgs e)
     {
         StateHasChanged();
+    }
+
+    void IDisposable.Dispose()
+    {
+        AudioPlayer.OnPause -= PlayChanged;
+        AudioPlayer.OnPlay -= PlayChanged;
     }
 }

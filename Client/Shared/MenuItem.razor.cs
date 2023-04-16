@@ -4,7 +4,7 @@ using MusicPlayer.Client.Extensions;
 
 namespace MusicPlayer.Client.Shared;
 
-public partial class MenuItem
+public partial class MenuItem : IDisposable
 {
     [Inject]
     NavigationManager NavigationManager { get; set; } = default!;
@@ -26,4 +26,9 @@ public partial class MenuItem
     private string NameClassCSS => Active ? "text-white" : "";
 
     protected override void OnInitialized() => NavigationManager.LocationChanged += (s, e) => StateHasChanged();
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= (s, e) => StateHasChanged();
+    }
 }
